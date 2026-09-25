@@ -1,125 +1,110 @@
 const express = require("express");
-const fs = require("fs/promises");
-const path = require("path");
+const router = express.Router();
+const data = require("../data.json");
 
-const articleRouter = express.Router();
-const dataPath = path.join(__dirname, "..", "data.json");
+router.get("/", (req, res) => {
+  try {
+    res.status(200).json(data.articles);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
 
-async function readData() {
-  const fileContent = await fs.readFile(dataPath, "utf-8");
-  return JSON.parse(fileContent);
-}
+router.get("/:id", (req, res) => {
+  try {
+    const article = data.articles.find(
+      (item) => item.id === Number(req.params.id),
+    );
 
-async function writeData(data) {
-  await fs.writeFile(dataPath, JSON.stringify(data, null, 2), "utf-8");
-}
-
-articleRouter
-  .route("/")
-  .get(async (req, res) => {
-    try {
-      const data = await readData();
-      return res.status(200).json(data.articles);
-    } catch (err) {
-      return res.status(500).json({ message: err.message });
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
     }
-  })
-  .post(async (req, res) => {
-    try {
-      const { title, content, author, date } = req.body;
-      if (!title || !content || !author || !date) {
-        return res.status(400).json({
-          message: "title, content, author and date are required",
-        });
-      }
 
-      const data = await readData();
-      const newId = data.articles.reduce(
-        (maxId, article) => Math.max(maxId, Number(article.id) || 0),
-        0
-      ) + 1;
-      const newArticle = { id: newId, title, content, author, date };
+    res.status(200).json(article);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
 
-      data.articles.push(newArticle);
-      await writeData(data);
-      return res.status(201).json(newArticle);
-    } catch (err) {
-      return res.status(500).json({ message: err.message });
+router.get("/:id/comments", (req, res) => {
+  try {
+    const articleId = Number(req.params.id);
+    const article = data.articles.find((item) => item.id === articleId);
+
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
     }
-  })
-  .put((req, res) => {
-    return res.status(403).json({ message: "PUT operation not supported on /articles" });
-  })
-  .delete((req, res) => {
-    return res.status(403).json({ message: "DELETE operation not supported on /articles" });
-  });
 
-articleRouter
-  .route("/:id")
-  .get(async (req, res) => {
-    try {
-      const id = Number(req.params.id);
-      const data = await readData();
-      const article = data.articles.find((item) => item.id === id);
+    const comments = data.comments.filter(
+      (item) => item.articleId === articleId,
+    );
 
-      if (!article) return res.status(404).json({ message: "Article not found" });
-      return res.status(200).json(article);
-    } catch (err) {
-      return res.status(500).json({ message: err.message });
+    res.status(200).json(comments);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/", (req, res) => {
+  try {
+    const { title, content, author, date } = req.body;
+
+    if (!title || !content || !author || !date) {
+      return res
+        .status(400)
+        .json({ message: "Missing required article fields" });
     }
-  })
-  .put(async (req, res) => {
-    try {
-      const id = Number(req.params.id);
-      const { title, content, author, date } = req.body;
 
-      if (title === undefined && content === undefined && author === undefined && date === undefined) {
-        return res.status(400).json({
-          message: "Provide at least one field: title, content, author or date",
-        });
-      }
+    const id = data.articles.length
+      ? data.articles[data.articles.length - 1].id + 1
+      : 1;
+    const newArticle = { id, title, content, author, date };
 
-      const data = await readData();
-      const article = data.articles.find((item) => item.id === id);
-      if (!article) return res.status(404).json({ message: "Article not found" });
+    data.articles.push(newArticle);
+    res.status(201).json(newArticle);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
 
-      if (title !== undefined) article.title = title;
-      if (content !== undefined) article.content = content;
-      if (author !== undefined) article.author = author;
-      if (date !== undefined) article.date = date;
+router.put("/:id", (req, res) => {
+  try {
+    const articleId = Number(req.params.id);
+    const articleIndex = data.articles.findIndex((a) => a.id === articleId);
 
-      await writeData(data);
-      return res.status(200).json(article);
-    } catch (err) {
-      return res.status(500).json({ message: err.message });
+    if (articleIndex === -1) {
+      return res.status(404).json({ message: "Article not found" });
     }
-  })
-  .delete(async (req, res) => {
-    try {
-      const id = Number(req.params.id);
-      const data = await readData();
-      const articleIndex = data.articles.findIndex((item) => item.id === id);
 
-      if (articleIndex === -1) {
-        return res.status(404).json({ message: "Article not found" });
-      }
+    const { title, content, author, date } = req.body;
+    data.articles[articleIndex] = {
+      id: articleId,
+      title,
+      content,
+      author,
+      date,
+    };
 
-      const deletedArticle = data.articles.splice(articleIndex, 1)[0];
-      data.comments = data.comments.filter((comment) => comment.articleId !== id);
+    res.status(200).json(data.articles[articleIndex]);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
 
-      await writeData(data);
-      return res.status(200).json({
-        message: "Article deleted successfully",
-        article: deletedArticle,
-      });
-    } catch (err) {
-      return res.status(500).json({ message: err.message });
+router.delete("/:id", (req, res) => {
+  try {
+    const articleId = Number(req.params.id);
+    const articleIndex = data.articles.findIndex((a) => a.id === articleId);
+
+    if (articleIndex === -1) {
+      return res.status(404).json({ message: "Article not found" });
     }
-  })
-  .post((req, res) => {
-    return res.status(403).json({
-      message: `POST operation not supported on /articles/${req.params.id}`,
-    });
-  });
 
-module.exports = articleRouter;
+    const deletedArticle = data.articles.splice(articleIndex, 1);
+    res.status(200).json(deletedArticle[0]);
+  } catch (error) {
+    res.json({ error: error.message });
+  }
+});
+
+module.exports = router;
