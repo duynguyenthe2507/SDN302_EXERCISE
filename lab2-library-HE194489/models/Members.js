@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const membersSchema = new mongoose.Schema(
   {
+    _id: { type: String, required: true },
+
     fullName: { type: String, required: true },
 
     email: { type: String, required: true, unique: true },
@@ -15,7 +17,7 @@ const membersSchema = new mongoose.Schema(
 
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true },
+  { timestamps: true, _id: false },
 );
 
 const Member = mongoose.model("Member", membersSchema, "members");

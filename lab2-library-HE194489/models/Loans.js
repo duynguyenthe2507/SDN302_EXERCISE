@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const loansSchema = new mongoose.Schema(
   {
     member_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "Member",
       required: true,
     },
@@ -11,19 +11,16 @@ const loansSchema = new mongoose.Schema(
     items: [
       {
         book_id: {
-          type: mongoose.Schema.Types.ObjectId,
+          type: String,
           ref: "Book",
           required: true,
         },
-
         quantity: { type: Number, min: 1, required: true },
       },
     ],
 
     borrowDate: { type: Date, default: Date.now },
-
     dueDate: { type: Date, required: true },
-
     returnDate: { type: Date, default: null },
 
     status: {
@@ -32,7 +29,7 @@ const loansSchema = new mongoose.Schema(
       default: "Borrowing",
     },
   },
-  { timestamps: true },
+  { timestamps: true, _id: false },
 );
 
 const Loan = mongoose.model("Loan", loansSchema, "loans");

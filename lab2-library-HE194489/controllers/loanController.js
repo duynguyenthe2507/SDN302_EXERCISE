@@ -1,12 +1,10 @@
-const mongoose = require("mongoose");
 const Loan = require("../models/Loans");
-
-const populateLoanReferences = (query) =>
-  query.populate("member_id").populate("items.book_id");
-
 exports.getAllLoans = async (req, res) => {
   try {
-    const loans = await populateLoanReferences(Loan.find());
+    const loans = await Loan.find()
+      .populate("member_id")
+      .populate("items.book_id");
+
     return res.status(200).json(loans);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -15,32 +13,15 @@ exports.getAllLoans = async (req, res) => {
 
 exports.getLoanById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid loan ID" });
-    }
+    const loan = await Loan.findOne({ _id: req.params.id })
+      .populate("member_id")
+      .populate("items.book_id");
 
-    const loan = await populateLoanReferences(Loan.findById(req.params.id));
     if (!loan) {
       return res.status(404).json({ message: "Loan not found" });
     }
 
     return res.status(200).json(loan);
-  } catch (error) {
-    return res.status(500).json({ message: error.message });
-  }
-};
-
-exports.getLoanByMemberId = async (req, res) => {
-  try {
-    const memberId = req.params.memberId || req.params.id;
-    if (!mongoose.isValidObjectId(memberId)) {
-      return res.status(400).json({ message: "Invalid member ID" });
-    }
-
-    const loans = await populateLoanReferences(
-      Loan.find({ member_id: memberId }),
-    );
-    return res.status(200).json(loans);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -48,6 +29,12 @@ exports.getLoanByMemberId = async (req, res) => {
 
 exports.createLoan = async (req, res) => {
   try {
+    const { member_id, items, dueDate } = req.body;
+
+    if (!member_id || !items || !items.length || !dueDate) {
+      return res.status(400).json({ message: "Missing required fields." });
+    }
+
     const loan = await Loan.create(req.body);
     return res.status(201).json(loan);
   } catch (error) {
@@ -55,25 +42,15 @@ exports.createLoan = async (req, res) => {
   }
 };
 
-exports.returnLoanById = async (req, res) => {
+exports.getLoanByMemberId = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid loan ID" });
-    }
+    const { memberId } = req.params;
 
-    const loan = await Loan.findById(req.params.id);
-    if (!loan) {
-      return res.status(404).json({ message: "Loan not found" });
-    }
-    if (loan.status === "Returned") {
-      return res.status(409).json({ message: "Loan has already been returned" });
-    }
+    const loans = await Loan.find({ member_id: memberId })
+      .populate("member_id")
+      .populate("items.book_id");
 
-    loan.status = "Returned";
-    loan.returnDate = new Date();
-    await loan.save();
-
-    return res.status(200).json(loan);
+    return res.status(200).json(loans);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

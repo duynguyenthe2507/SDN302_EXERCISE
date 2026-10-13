@@ -12,11 +12,8 @@ exports.getAllMembers = async (req, res) => {
 
 exports.getMemberById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid member ID" });
-    }
+    const member = await Member.findOne({ _id: req.params.id });
 
-    const member = await Member.findById(req.params.id);
     if (!member) {
       return res.status(404).json({ message: "Member not found" });
     }
@@ -38,14 +35,15 @@ exports.createMember = async (req, res) => {
 
 exports.updateMemberById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid member ID" });
-    }
+    const member = await Member.findOneAndUpdate(
+      { _id: req.params.id },
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
-    const member = await Member.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
     if (!member) {
       return res.status(404).json({ message: "Member not found" });
     }
@@ -58,11 +56,8 @@ exports.updateMemberById = async (req, res) => {
 
 exports.deleteMemberById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid member ID" });
-    }
+    const member = await Member.findOneAndDelete({ _id: req.params.id });
 
-    const member = await Member.findByIdAndDelete(req.params.id);
     if (!member) {
       return res.status(404).json({ message: "Member not found" });
     }

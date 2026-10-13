@@ -12,11 +12,8 @@ exports.getAllBooks = async (req, res) => {
 
 exports.getBookById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid book ID" });
-    }
+    const book = await Book.findOne({ _id: req.params.id });
 
-    const book = await Book.findById(req.params.id);
     if (!book) {
       return res.status(404).json({ message: "Book not found" });
     }
@@ -38,14 +35,11 @@ exports.createBook = async (req, res) => {
 
 exports.updateBookById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid book ID" });
-    }
-
-    const book = await Book.findByIdAndUpdate(req.params.id, req.body, {
+    const book = await Book.findOneAndUpdate({ _id: req.params.id }, req.body, {
       new: true,
       runValidators: true,
     });
+
     if (!book) {
       return res.status(404).json({ message: "Book not found" });
     }
@@ -58,11 +52,8 @@ exports.updateBookById = async (req, res) => {
 
 exports.deleteBookById = async (req, res) => {
   try {
-    if (!mongoose.isValidObjectId(req.params.id)) {
-      return res.status(400).json({ message: "Invalid book ID" });
-    }
+    const book = await Book.findOneAndDelete({ _id: req.params.id });
 
-    const book = await Book.findByIdAndDelete(req.params.id);
     if (!book) {
       return res.status(404).json({ message: "Book not found" });
     }
