@@ -15,16 +15,7 @@ articleRouter
   // POST a new article
   .post(async (req, res) => {
     try {
-      res
-        .status(201)
-        .json(
-          "Will add the article: " +
-            req.body.title +
-            " with details: " +
-            req.body.text +
-            " and " +
-            req.body.date,
-        );
+      res.status(201).json(req.body.title, req.body.text, req.body.date);
     } catch (err) {
       res.status(400).json({ message: err.message });
     }

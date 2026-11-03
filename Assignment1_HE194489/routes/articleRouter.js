@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const data = require("../data.json");
 
+//localhost:3000/articles
 router.get("/", (req, res) => {
   try {
     res.status(200).json(data.articles);
@@ -9,7 +10,7 @@ router.get("/", (req, res) => {
     res.json({ error: error.message });
   }
 });
-
+//localhost:3000/articles/1
 router.get("/:id", (req, res) => {
   try {
     const article = data.articles.find(
@@ -25,7 +26,7 @@ router.get("/:id", (req, res) => {
     res.json({ error: error.message });
   }
 });
-
+//localhost:3000/articles/1/comments
 router.get("/:id/comments", (req, res) => {
   try {
     const articleId = Number(req.params.id);
@@ -44,7 +45,7 @@ router.get("/:id/comments", (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
+//localhost:3000/articles
 router.post("/", (req, res) => {
   try {
     const { title, content, author, date } = req.body;
@@ -66,7 +67,7 @@ router.post("/", (req, res) => {
     res.json({ error: error.message });
   }
 });
-
+//localhost:3000/articles/1
 router.put("/:id", (req, res) => {
   try {
     const articleId = Number(req.params.id);
@@ -90,7 +91,7 @@ router.put("/:id", (req, res) => {
     res.json({ error: error.message });
   }
 });
-
+//localhost:3000/articles/1
 router.delete("/:id", (req, res) => {
   try {
     const articleId = Number(req.params.id);

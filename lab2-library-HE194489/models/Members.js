@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const membersSchema = new mongoose.Schema(
   {
-    _id: { type: String, required: true },
+    _id: { type: String, default: () => {new mongoose.Types.ObjectId().toString()}},
 
     fullName: { type: String, required: true },
 
@@ -17,8 +17,8 @@ const membersSchema = new mongoose.Schema(
 
     isActive: { type: Boolean, default: true },
   },
-  { timestamps: true, _id: false },
+  { timestamps: true},
 );
 
 const Member = mongoose.model("Member", membersSchema, "members");
-module.exports = Member;
+module.exports = Member; 

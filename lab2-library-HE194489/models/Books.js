@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const booksSchema = new mongoose.Schema(
   {
-    _id: { type: String, required: true },
+    _id: { type: String, default: () => {new mongoose.Types.ObjectId().toString()}},
     title: { type: String, required: true },
     author: { type: String, required: true },
     category: { type: String, required: true },
@@ -13,7 +13,7 @@ const booksSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    _id: false, // Tắt tự động sinh _id mới của Mongoose để không đè lên _id từ JSON
+    //_id: false, 
   },
 );
 

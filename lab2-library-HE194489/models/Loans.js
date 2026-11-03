@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const loansSchema = new mongoose.Schema(
   {
+    _id: { type: String, default: () => {new mongoose.Types.ObjectId().toString()}},
     member_id: {
       type: String,
       ref: "Member",
@@ -29,7 +30,9 @@ const loansSchema = new mongoose.Schema(
       default: "Borrowing",
     },
   },
-  { timestamps: true, _id: false },
+  { 
+    timestamps: true, 
+   },
 );
 
 const Loan = mongoose.model("Loan", loansSchema, "loans");

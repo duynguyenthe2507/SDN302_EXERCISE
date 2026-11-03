@@ -2,9 +2,8 @@ const Loan = require("../models/Loans");
 exports.getAllLoans = async (req, res) => {
   try {
     const loans = await Loan.find()
-      .populate("member_id")
-      .populate("items.book_id");
-
+      .populate("member_id", "fullName email membershipType isActive")
+      .populate("items.book_id", "title author category isbn");
     return res.status(200).json(loans);
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -14,8 +13,8 @@ exports.getAllLoans = async (req, res) => {
 exports.getLoanById = async (req, res) => {
   try {
     const loan = await Loan.findOne({ _id: req.params.id })
-      .populate("member_id")
-      .populate("items.book_id");
+      .populate("member_id", "fullName email membershipType isActive")
+      .populate("items.book_id", "title author category isbn");
 
     if (!loan) {
       return res.status(404).json({ message: "Loan not found" });
@@ -29,7 +28,7 @@ exports.getLoanById = async (req, res) => {
 
 exports.createLoan = async (req, res) => {
   try {
-    const { member_id, items, dueDate } = req.body;
+    const {member_id, items, dueDate } = req.body;
 
     if (!member_id || !items || !items.length || !dueDate) {
       return res.status(400).json({ message: "Missing required fields." });
@@ -47,8 +46,8 @@ exports.getLoanByMemberId = async (req, res) => {
     const { memberId } = req.params;
 
     const loans = await Loan.find({ member_id: memberId })
-      .populate("member_id")
-      .populate("items.book_id");
+      .populate("member_id", "fullName email membershipType isActive")
+      .populate("items.book_id", "title author category isbn");
 
     return res.status(200).json(loans);
   } catch (error) {

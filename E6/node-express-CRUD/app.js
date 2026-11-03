@@ -90,7 +90,7 @@ app.delete('/article/:id', (req, res) => {
     const deletedArticle = articles.splice(index, 1);
 
     res.status(204).json(deletedArticle);
-});
+});      
 app.listen(port, () => {
           console.log(`Running at port ${port}`);
 });
